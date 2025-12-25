@@ -4,6 +4,8 @@ services:
     build:
       context: mongo
     image: ${REPO}/rs-mongodb:${TAG}
+    volumes:
+      - mongo_data:/data/db
     networks:
       - robot-shop
     logging: &logging
@@ -13,6 +15,12 @@ services:
         max-file: "2"
   redis:
     image: redis:6.2-alpine
+    volumes:
+      - redis_data:/data
+    command: >
+        redis-server
+        --appendonly yes
+        --appendfsync everysec
     networks:
       - robot-shop
     logging:
@@ -73,6 +81,8 @@ services:
     build:
       context: mysql
     image: ${REPO}/rs-mysql-db:${TAG}
+    volumes:
+      - mysql_data:/var/lib/mysql
     cap_add:
       - NET_ADMIN
     networks:
@@ -124,9 +134,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-    # Uncomment to change payment gateway
-    #environment:
-      #PAYMENT_GATEWAY: "https://www.worldpay.com"
+    environment:
+      PAYMENT_GATEWAY: "https://stripe.com"
     logging:
       <<: *logging
   dispatch:
@@ -170,3 +179,7 @@ services:
 networks:
   robot-shop:
 
+volumes:
+  mongo_data:
+  mysql_data:
+  redis_data:
